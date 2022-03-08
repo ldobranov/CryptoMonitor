@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <div id="mainContent">
+    <form action="{{ url_for('save_coins') }}" method=post>
+      <ul>
+        <li><label for="coin1">API id  1</label></li>
+        <li><input type="text" name="coin1", class="wifiNetworkInputs", value={{coin1}}></li>
+        <li><input type="number" name="dec1", class="wifiNetworkInputs", value={{dec1}}></li>
+        <li><label for="coin2">API id  2</label></li>
+        <li><input type="text" name="coin2", class="wifiNetworkInputs", value={{coin2}}></li>
+        <li><input type="number" name="dec2", class="wifiNetworkInputs", value={{dec2}}></li>
+
+        <input type="submit", class="wifiConnectButton", value="Save">
+      </ul>
+    </form>
+  </div>
+{% endblock %}
