@@ -3,6 +3,9 @@ import os
 import time
 import subprocess
 import reset_lib
+import socket
+from rpi_lcd import LCD
+lcd = LCD()
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -12,7 +15,6 @@ serial_last_four = subprocess.check_output(['cat', '/proc/cpuinfo'])[-5:-1].deco
 config_hash = reset_lib.config_file_hash()
 ssid_prefix = config_hash['ssid_prefix'] + " "
 reboot_required = False
-
 
 reboot_required = reset_lib.wpa_check_activate(config_hash['wpa_enabled'], config_hash['wpa_key'])
 
@@ -25,12 +27,21 @@ if reboot_required == True:
 # If that happens the device will reset to its AP Host mode allowing for reconfiguration on a new network.
 while True:
     while GPIO.input(18) == 1:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            line1 = s.getsockname()[0]
+        except:
+            line1 = 'No Connection to router'
+            line1 = '     NO IP      '
+        lcd.text(line1, 1)
+        lcd.text('   RESET in:'+str((counter-9)*-1), 2)
         time.sleep(1)
         counter = counter + 1
 
-        print(counter)
-
         if counter == 9:
+            lcd.text('WiFi connect to ', 1)
+            lcd.text(' Crypto Monitor ', 2)
             reset_lib.reset_to_host_mode()
 
         if GPIO.input(18) == 0:
