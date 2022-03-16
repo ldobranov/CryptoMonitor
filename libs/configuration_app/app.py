@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from flask import Flask, render_template, request
 import subprocess
 import os
@@ -107,34 +108,42 @@ def save_wpa_credentials():
 
 ######## FUNCTIONS ##########
 
+def get_data():
+    coin_hash = config_file_hash()
+    dec1 = coin_hash['dec1']
+    dec2 = coin_hash['dec2']
+    btc = cg.get_coin_by_id(id=coin_hash['coin1'], localization='false',
+                            tickers='false', community_data='false', developer_data='false')
+    eth = cg.get_coin_by_id(id=coin_hash['coin2'], localization='false',
+                            tickers='false', community_data='false', developer_data='false')
+    bprice = btc['market_data']['current_price']['usd']
+    eprice = eth['market_data']['current_price']['usd']
+    bp = btc['market_data']['price_change_percentage_24h']
+    ep = eth['market_data']['price_change_percentage_24h']
+    if bp > 0:
+        l1 = (btc['symbol'].upper()+' +' +
+                str(f'{bp:4.2f}')+str(f' {bprice:5.{dec1}f}'))
+    else:
+        l1 = (btc['symbol'].upper()+' ' +
+                str(f'{bp:4.2f}')+str(f' {bprice:5.{dec1}f}'))
+    if ep > 0:
+        l2 = (eth['symbol'].upper()+' +' +
+                str(f'{ep:4.2f}')+str(f' {eprice:5.{dec2}f}'))
+    else:
+        l2 = (eth['symbol'].upper()+' ' +
+                str(f'{ep:4.2f}')+str(f' {eprice:5.{dec2}f}'))
+    data={"l1":l1,"l2":l2}
+    return data
+
 def start_print():
     while True:
-        coin_hash = config_file_hash()
-        dec1 = coin_hash['dec1']
-        dec2 = coin_hash['dec2']
-        btc = cg.get_coin_by_id(id=coin_hash['coin1'], localization='false',
-                                tickers='false', community_data='false', developer_data='false')
-        eth = cg.get_coin_by_id(id=coin_hash['coin2'], localization='false',
-                                tickers='false', community_data='false', developer_data='false')
-        bprice = btc['market_data']['current_price']['usd']
-        eprice = eth['market_data']['current_price']['usd']
-        bp = btc['market_data']['price_change_percentage_24h']
-        ep = eth['market_data']['price_change_percentage_24h']
-        if bp > 0:
-            l1 = (btc['symbol'].upper()+' +' +
-                  str(f'{bp:4.2f}')+str(f' {bprice:5.{dec1}f}'))
-        else:
-            l1 = (btc['symbol'].upper()+' ' +
-                  str(f'{bp:4.2f}')+str(f' {bprice:5.{dec1}f}'))
-        if ep > 0:
-            l2 = (eth['symbol'].upper()+' +' +
-                  str(f'{ep:4.2f}')+str(f' {eprice:5.{dec2}f}'))
-        else:
-            l2 = (eth['symbol'].upper()+' ' +
-                  str(f'{ep:4.2f}')+str(f' {eprice:5.{dec2}f}'))
-        lcd.text(l1, 1)
-        lcd.text(l2, 2)
-        print(l1+'   '+l2)
+        try:
+            data=get_data()
+        except:
+            data={"l1":"Something","l2":"went wrong"}
+        lcd.text(data.l1, 1)
+        lcd.text(data.l2, 2)
+        print(data.l1+'   '+data.l2)
         time.sleep(10)
 
 
